@@ -22,4 +22,4 @@ def parse_args ():
 
 def init (args):
     data.init()
-    print (f'Initialized empty ugit repository in {os.path.join(os.getcwd(), data.GIT_DIR)}')
+    print (f'Initialized beautiful empty  ugit repository in {os.path.join(os.getcwd(), data.GIT_DIR)}')
