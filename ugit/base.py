@@ -60,10 +60,19 @@ def read_tree(tree_oid):
 
 def commit(message):
     commit = f'tree {write_tree()}\n'
+    
+    HEAD = data.get_HEAD()
+    if HEAD:
+        commit += f'parent {HEAD}\n'
+    
     commit += '\n'
     commit += f'{message}\n'
     
-    return data.hash_object(commit.encode(), 'commit')
+    oid = data.hash_object(commit.encode(), 'commit')
+    
+    data.set_HEAD(oid)
+    
+    return oid
 
     
 def is_ignored(path):
