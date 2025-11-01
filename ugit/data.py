@@ -1,3 +1,6 @@
+# This module manages the data in .ugit directory. Here will
+# be the code that actually touches files on disk.
+
 import hashlib
 import os
 
