@@ -10,16 +10,19 @@ def init():
     os.makedirs(GIT_DIR)
     os.makedirs(os.path.join(GIT_DIR, 'objects'))
     
-    
-def set_HEAD(oid):
-    with open(os.path.join(GIT_DIR, 'HEAD'), 'w') as f:
+# Set the ref name for an object    
+def update_ref(ref, oid):
+    ref_path = os.path.join(GIT_DIR, ref)
+    os.makedirs(os.path.dirname(ref_path), exist_ok=True)
+    with open(ref_path, 'w') as f:
         f.write(oid)
         
 
-def get_HEAD():
-    head_path = os.path.join(GIT_DIR, 'HEAD')
-    if os.path.isfile(head_path):
-        with open(head_path) as f:
+# Get the ref name for an object
+def get_ref(ref):
+    ref_path = os.path.join(GIT_DIR, ref)
+    if os.path.isfile(ref_path):
+        with open(ref_path) as f:
             return f.read().strip()
         
         
