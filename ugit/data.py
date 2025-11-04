@@ -20,10 +20,10 @@ def get_HEAD():
     head_path = os.path.join(GIT_DIR, 'HEAD')
     if os.path.isfile(head_path):
         with open(head_path) as f:
-            return f.read.strip()
+            return f.read().strip()
         
         
-    
+# In the caller, data is encoded into bytes.    
 def hash_object(data, type_='blob'):
     obj = type_.encode() + b'\x00' + data
     oid = hashlib.sha1(obj).hexdigest()
@@ -32,6 +32,8 @@ def hash_object(data, type_='blob'):
     return oid
 
 
+# It return the content encoded into bytes so, when this function is called,
+# the result is usually decoded.
 def get_object(oid, expected='blob'):
     with open(os.path.join(GIT_DIR, 'objects', oid), 'rb') as f:
         obj = f.read()

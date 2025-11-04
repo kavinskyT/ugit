@@ -1,9 +1,16 @@
 # This module will have the basic higher-level logic of ugit.
 
+import itertools
+import operator
 import os
+
+from collections import namedtuple
 
 from . import data
 
+# This function saves a tree as an object. If there are subfolders, the process 
+# is done recursively and the OID of a folder is saved in the tree object 
+# corresponding to the super folder.
 def write_tree(directory='.'):
     entries = []
     with os.scandir(directory) as it:
@@ -25,7 +32,7 @@ def write_tree(directory='.'):
                    in sorted(entries))
     return data.hash_object(tree.encode(), 'tree')
 
-
+# It generates, line by line, the content of a tree.
 def _iter_tree_entries(oid):
     if not oid:
         return
@@ -34,7 +41,7 @@ def _iter_tree_entries(oid):
         type_, oid, name = entry.split(' ', 2)
         yield type_, oid, name
         
-
+# It recursively parse a tree into a dictionary.
 def get_tree(oid, base_path=''):
     result = {}
     for type_, oid, name in _iter_tree_entries(oid):
@@ -50,8 +57,29 @@ def get_tree(oid, base_path=''):
     return result
 
 
-# This function rebuild the directory as saved in the corresponding tree
+# It deletes all the content of the folder.
+def _empty_current_directory():
+    for root, dirnames, filenames in os.walk('.', topdown=False):
+        for filename in filenames:
+            path = os.path.relpath(os.path.join(root, filename))
+            if is_ignored(path) or not os.path.isfile(path):
+                continue
+            os.remove(path)
+        for dirname in dirnames:
+            path = os.path.relpath(os.path.join(root, dirname))
+            if is_ignored(path):
+                continue
+            try:
+                os.rmdir(path)
+            except (FileNotFoundError, OSError):
+                # Deletion might fail if the directory contains ignored files,
+                # so it's OK
+                pass
+
+
+# This function rebuild the directory as saved in the corresponding tree.
 def read_tree(tree_oid):
+    _empty_current_directory()
     for path, oid in get_tree(tree_oid, base_path='./').items():
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, 'wb') as f:
@@ -70,10 +98,34 @@ def commit(message):
     
     oid = data.hash_object(commit.encode(), 'commit')
     
+    # Update the HEAD
     data.set_HEAD(oid)
     
     return oid
 
+
+Commit = namedtuple('Commit', ['tree', 'parent', 'message'])
+
+
+def get_commit(oid):
+    parent = None
+    
+    commit = data.get_object(oid, 'commit').decode()
+    lines = iter(commit.splitlines())
+    # takewhile iters on iterable as long as the predicate is true. In this case the
+    # predicate is operator.truth, which checks if the object is true.
+    for line in itertools.takewhile(operator.truth, lines):
+        key, value = line.split (' ', 1)
+        if key == 'tree':
+            tree = value
+        elif key == 'parent':
+            parent = value
+        else: 
+            assert False, f'Unknown field {key}'
+        
+    message = '\n'.join(lines)
+    return Commit(tree=tree, parent=parent, message=message)
+    
     
 def is_ignored(path):
     return '.ugit' in path.split('/')
