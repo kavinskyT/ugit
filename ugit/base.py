@@ -129,4 +129,10 @@ def get_commit(oid):
     
 def is_ignored(path):
     return '.ugit' in path.split('/')
+
+
+def checkout(oid):
+    commit = get_commit(oid)
+    read_tree(commit.tree)
+    data.set_HEAD(oid)
         
