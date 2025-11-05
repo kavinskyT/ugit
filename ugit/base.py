@@ -130,7 +130,26 @@ def get_commit(oid):
 
 
 def get_oid(name):
-    return data.get_ref(name) or name
+    if name == '@': name = 'HEAD'
+    
+    # Name is ref
+    refs_to_try = [
+        f'{name}',
+        os.path.join('refs', name),
+        os.path.join('refs', 'tags', name),
+        os.path.join('refs', 'heads', name)
+    ]
+    
+    for ref in refs_to_try:
+        if data.get_ref(ref):
+            return data.get_ref(ref)
+        
+    # Name is SHA1 (SHA 1 hash is 160 bits = 40 hex digits)
+    is_hex = all(c in string.hexdigits for c in name)
+    if len(name) == 40 and is_hex:
+        return name
+    
+    assert False, f'Unknown name {name}'
     
     
 def is_ignored(path):
