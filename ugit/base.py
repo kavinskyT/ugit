@@ -5,7 +5,7 @@ import operator
 import os
 import string
 
-from collections import namedtuple
+from collections import deque, namedtuple
 
 from . import data
 
@@ -109,6 +109,7 @@ def commit(message):
 Commit = namedtuple('Commit', ['tree', 'parent', 'message'])
 
 
+# Given an oid it returns the associated Commit tuple
 def get_commit(oid):
     parent = None
     
@@ -127,6 +128,25 @@ def get_commit(oid):
         
     message = '\n'.join(lines)
     return Commit(tree=tree, parent=parent, message=message)
+
+
+def iter_commits_and_parents(oids):
+    # A deque is a double-endend queue. You can pop and append either from both ends.
+    oids = deque(oids)
+    visited = set()
+    
+    # oids contains refs so when we pop a ref we append its parent so the next 
+    # iteration we pop the parent and so on until the root.
+    while oids:
+        oid = oids.popleft()
+        if not oid or oid in visited:
+            continue
+        visited.add(oid)
+        yield oid
+        
+        commit = get_commit(oid)
+        # Return parent next
+        oids.appendleft(commit.parent)
 
 
 def get_oid(name):

@@ -26,6 +26,18 @@ def get_ref(ref):
             return f.read().strip()
         
         
+def iter_refs():
+    refs = ['HEAD']
+    # This is needed to get all the refs in the path format expected by get_ref, 
+    # which appends ref to GIT_DIR
+    for root, _, filenames in os.walk(os.path.join(GIT_DIR, 'refs')):
+        root = os.path.relpath(root, GIT_DIR)
+        refs.extend(os.path.join(root, name) for name in filenames)
+        
+    for refname in refs:
+        yield refname, get_ref(refname)
+        
+        
 # In the caller, data is encoded into bytes.    
 def hash_object(data, type_='blob'):
     obj = type_.encode() + b'\x00' + data
