@@ -19,8 +19,9 @@ RefValue = namedtuple('RefValue', ['symbolic', 'value'])
     
     
 # Set the ref name for an object    
-def update_ref(ref, value):
+def update_ref(ref, value, deref=True):
     assert not value.symbolic
+    ref = _get_ref_internal(ref, deref)[0]
     ref_path = os.path.join(GIT_DIR, ref)
     os.makedirs(os.path.dirname(ref_path), exist_ok=True)
     with open(ref_path, 'w') as f:
@@ -28,13 +29,13 @@ def update_ref(ref, value):
         
 
 # Get the ref name for an object
-def get_ref(ref):
-    return _get_ref_internal(ref)[1]
+def get_ref(ref, deref=True):
+    return _get_ref_internal(ref, deref)[1]
 
 
 # This function is needed to resolve a ref. If a ref is symbolic, the function 
 # retrieves the last ref in the chain that actually refers to an oid (commit)
-def _get_ref_internal(ref):
+def _get_ref_internal(ref, deref):
     ref_path = os.path.join(GIT_DIR, ref)
     value = None
     
@@ -45,12 +46,13 @@ def _get_ref_internal(ref):
     symbolic = bool(value) and value.startswith('ref:')
     if symbolic:
         value = value.split(':', 1)[1].strip()
-        return _get_ref_internal(value)
+        if deref:
+            return _get_ref_internal(value, deref=True)
     
-    return ref, RefValue(symbolic=False, vlaue=value) 
+    return ref, RefValue(symbolic=symbolic, vlaue=value) 
         
         
-def iter_refs():
+def iter_refs(deref=True):
     refs = ['HEAD']
     # This is needed to get all the refs in the path format expected by get_ref, 
     # which appends ref to GIT_DIR
@@ -59,7 +61,7 @@ def iter_refs():
         refs.extend(os.path.join(root, name) for name in filenames)
         
     for refname in refs:
-        yield refname, get_ref(refname)
+        yield refname, get_ref(refname, deref=deref)
         
         
 # In the caller, data is encoded into bytes.    
