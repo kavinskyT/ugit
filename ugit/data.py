@@ -18,14 +18,20 @@ def init():
 RefValue = namedtuple('RefValue', ['symbolic', 'value'])    
     
     
-# Set the ref name for an object    
+# Set the ref name for an object (the object can either be an oid or another ref)
 def update_ref(ref, value, deref=True):
-    assert not value.symbolic
     ref = _get_ref_internal(ref, deref)[0]
+    
+    assert value.value
+    if value.symbolic:
+        value = f'ref:{value.value}'
+    else:
+        value = value.value
+    
     ref_path = os.path.join(GIT_DIR, ref)
     os.makedirs(os.path.dirname(ref_path), exist_ok=True)
     with open(ref_path, 'w') as f:
-        f.write(value.value)
+        f.write(value)
         
 
 # Get the ref name for an object
