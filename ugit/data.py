@@ -29,16 +29,25 @@ def update_ref(ref, value):
 
 # Get the ref name for an object
 def get_ref(ref):
+    return _get_ref_internal(ref)[1]
+
+
+# This function is needed to resolve a ref. If a ref is symbolic, the function 
+# retrieves the last ref in the chain that actually refers to an oid (commit)
+def _get_ref_internal(ref):
     ref_path = os.path.join(GIT_DIR, ref)
     value = None
+    
     if os.path.isfile(ref_path):
         with open(ref_path) as f:
             value = f.read().strip()
-    
-    if value and value.startswith('ref:'):
-        return get_ref(value.split(':', 1)[1].strip())
 
-    return RefValue(symbolic=False, value=value)
+    symbolic = bool(value) and value.startswith('ref:')
+    if symbolic:
+        value = value.split(':', 1)[1].strip()
+        return _get_ref_internal(value)
+    
+    return ref, RefValue(symbolic=False, vlaue=value) 
         
         
 def iter_refs():
