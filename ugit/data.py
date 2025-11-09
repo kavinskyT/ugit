@@ -21,9 +21,15 @@ def update_ref(ref, oid):
 # Get the ref name for an object
 def get_ref(ref):
     ref_path = os.path.join(GIT_DIR, ref)
+    value = None
     if os.path.isfile(ref_path):
         with open(ref_path) as f:
-            return f.read().strip()
+            value = f.read().strip()
+    
+    if value and value.startswith('ref:'):
+        return get_ref(value.split(':', 1)[1].strip())
+
+    return value
         
         
 def iter_refs():
