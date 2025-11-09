@@ -106,6 +106,14 @@ def commit(message):
     return oid
 
 
+def create_tag(name, oid):
+    data.update_ref(f'refs/tags/{name}', oid)
+    
+
+def create_branch(name, oid):
+    data.update_ref(f'refs/heads/{name}', oid)
+
+
 Commit = namedtuple('Commit', ['tree', 'parent', 'message'])
 
 
@@ -182,7 +190,3 @@ def checkout(oid):
     commit = get_commit(oid)
     read_tree(commit.tree)
     data.update_ref('HEAD', oid)
-        
-
-def create_tag(name, oid):
-    data.update_ref(f'refs/tags/{name}', oid)
