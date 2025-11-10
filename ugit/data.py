@@ -55,7 +55,7 @@ def _get_ref_internal(ref, deref):
         if deref:
             return _get_ref_internal(value, deref=True)
     
-    return ref, RefValue(symbolic=symbolic, vlaue=value) 
+    return ref, RefValue(symbolic=symbolic, value=value) 
         
         
 def iter_refs(deref=True):

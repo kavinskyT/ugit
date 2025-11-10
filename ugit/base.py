@@ -100,18 +100,34 @@ def commit(message):
     
     oid = data.hash_object(commit.encode(), 'commit')
     
-    # Update the HEAD
+    # Update the HEAD. HEAD is normally a symbolic link: 
+    # it points to another ref that actually points to an oid.
     data.update_ref('HEAD', data.RefValue(symbolic=False, value=oid))
+    # Explanation of how commit modifies the pointing of current branch and updates 
+    # HEAD: by calling update_ref on HEAD with new value, the recursive function
+    # _get_internal_ref() is called. In this way, the updating happens with 
+    # respect to the ref (current branch) that is pointed by HEAD (which is a s
+    # ymbolic link so we dive into a recursive step). HEAD isn't really updated 
+    # since it keeps pointing to the ref that represents the branch.
     
     return oid
 
 
 # This functions sets the project to a desired commit. 
 # The HEAD is updated accordingly to point to the retrieved commit. 
-def checkout(oid):
+def checkout(name):
+    oid = get_oid(name)
     commit = get_commit(oid)
     read_tree(commit.tree)
     data.update_ref('HEAD', data.RefValue(symbolic=False, value=oid))
+    
+    # We can either checkout a commit by its OID or ref. However, 
+    # by checking out an OID, HEAD point to that OID but does not point 
+    # to the branch ref anymore. This means we are in a detached HEAD state.
+    if is_branch(name):
+        HEAD = data.RefValue(symbolic=True, value=f'refs/heads/{name}')
+    else:
+        HEAD = data.RefValue(symbolic=False, value=oid)
 
 
 def create_tag(name, oid):
@@ -120,6 +136,10 @@ def create_tag(name, oid):
 
 def create_branch(name, oid):
     data.update_ref(f'refs/heads/{name}', data.RefValue(symbolic=False, value=oid))
+    
+
+def is_branch(branch):
+    return data.get_ref(f'refs/heads/{branch}').value is not None
 
 
 Commit = namedtuple('Commit', ['tree', 'parent', 'message'])
