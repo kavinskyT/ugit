@@ -9,6 +9,12 @@ from collections import deque, namedtuple
 
 from . import data
 
+
+def init():
+    data.init()
+    data.update_ref('HEAD', data.RefValue(symbolic=True, value='refs/heads/master'))
+
+
 # This function saves a tree as an object. If there are subfolders, the process 
 # is done recursively and the OID of a folder is saved in the tree object 
 # corresponding to the super folder.
@@ -106,8 +112,8 @@ def commit(message):
     # Explanation of how commit modifies the pointing of current branch and updates 
     # HEAD: by calling update_ref on HEAD with new value, the recursive function
     # _get_internal_ref() is called. In this way, the updating happens with 
-    # respect to the ref (current branch) that is pointed by HEAD (which is a s
-    # ymbolic link so we dive into a recursive step). HEAD isn't really updated 
+    # respect to the ref (current branch) that is pointed by HEAD (which is a 
+    # symbolic link so we dive into a recursive step). HEAD isn't really updated 
     # since it keeps pointing to the ref that represents the branch.
     
     return oid

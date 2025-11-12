@@ -64,7 +64,7 @@ def parse_args():
     branch_parser = commands.add_parser('branch')
     branch_parser.set_defaults(funch=branch)
     branch_parser.add_argument('name')
-    branch_parser('start_point', default='@', type=oid, nargs='?')
+    branch_parser.add_argument('start_point', default='@', type=oid, nargs='?')
     
     k_parser = commands.add_parser('k')
     k_parser.set_defaults(func=k)
@@ -73,7 +73,7 @@ def parse_args():
 
 
 def init(args):
-    data.init()
+    base.init()
     print (f'Initialized empty ugit repository in {os.path.join(os.getcwd(), data.GIT_DIR)}')
     
 
