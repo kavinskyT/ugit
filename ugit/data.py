@@ -58,7 +58,7 @@ def _get_ref_internal(ref, deref):
     return ref, RefValue(symbolic=symbolic, value=value) 
         
         
-def iter_refs(deref=True):
+def iter_refs(prefix='', deref=True):
     refs = ['HEAD']
     # This is needed to get all the refs in the path format expected by get_ref, 
     # which appends ref to GIT_DIR
@@ -67,6 +67,8 @@ def iter_refs(deref=True):
         refs.extend(os.path.join(root, name) for name in filenames)
         
     for refname in refs:
+        if not refname.startswith(prefix):
+            continue
         yield refname, get_ref(refname, deref=deref)
         
         
