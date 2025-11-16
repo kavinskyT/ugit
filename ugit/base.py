@@ -64,6 +64,22 @@ def get_tree(oid, base_path=''):
     return result
 
 
+# This function wals over all files in the working directory, 
+# put them in the object database and create a dict that holds 
+# all the OIDs. This dictionary will represent a "tree" without
+# actually writitng a tree object.
+def get_working_tree():
+    result = {}
+    for root, _, filenames in os.walk('.'):
+        for filename in filenames:
+            path = os.path.relpath(f'{root}/{filename}') # start_value is os.curdir by default, which is always .
+            if is_ignored(path) or not os.path.isfile(path):   
+                continue
+            with open(path, 'rb') as f:
+                result[path] = data.hash_object(f.read())
+    return result
+
+
 # It deletes all the content of the folder.
 def _empty_current_directory():
     for root, dirnames, filenames in os.walk('.', topdown=False):
