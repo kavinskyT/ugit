@@ -58,7 +58,7 @@ def parse_args():
     show_parser.add_argument('oid', default='@', type=oid, nargs='?')
     
     diff_parser = commands.add_parser('diff')
-    diff_parser.set_defaults(func=diff)
+    diff_parser.set_defaults(func=_diff)
     diff_parser.add_argument('commit', default='@', type=oid, nargs='?')
     
     checkout_parser = commands.add_parser('checkout')
