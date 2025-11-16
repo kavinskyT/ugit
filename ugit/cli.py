@@ -62,7 +62,7 @@ def parse_args():
     tag_parser.add_argument('oid', default='@', type=oid, nargs='?')
     
     branch_parser = commands.add_parser('branch')
-    branch_parser.set_defaults(funch=branch)
+    branch_parser.set_defaults(func=branch)
     branch_parser.add_argument('name', nargs='?')
     branch_parser.add_argument('start_point', default='@', type=oid, nargs='?')
     
