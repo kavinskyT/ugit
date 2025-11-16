@@ -66,11 +66,15 @@ def parse_args():
     branch_parser.add_argument('name', nargs='?')
     branch_parser.add_argument('start_point', default='@', type=oid, nargs='?')
     
+    k_parser = commands.add_parser('k')
+    k_parser.set_defaults(func=k)    
+    
     status_parser = commands.add_parser('status')
     status_parser.set_defaults(func=status)
     
-    k_parser = commands.add_parser('k')
-    k_parser.set_defaults(func=k)
+    reset_parser = commands.add_parser('reset')
+    reset_parser.set_defaults(func=reset)
+    reset_parser.add_argument('commit', type=oid)
     
     return parser.parse_args()
 
@@ -169,3 +173,7 @@ def status(args):
         print(f'On branch {branch}')
     else:
         print(f'HEAD detached at {HEAD[:10]}')
+        
+
+def reset(args):
+    base.reset(args.commit)

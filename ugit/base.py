@@ -137,6 +137,15 @@ def checkout(name):
     data.update_ref ('HEAD', HEAD, deref=False) 
     
 
+# Reset is similar to checkout but it moves the branch reference too 
+# (no detached head state). By default, the content of the directory is not 
+# changed accordingly to the default commit. In Git, to do so you would use 
+# git reset --hard <hash>. The default behaviour serves the purpose to rewrite 
+# commit hisotry while preserving your work changes.
+def reset(oid):
+    data.update_ref('HEAD', data.RefValue(symbolic=False, value=oid))
+    
+
 def create_tag(name, oid):
     data.update_ref(f'refs/tags/{name}', data.RefValue(symbolic=False, value=oid))
     
