@@ -125,7 +125,6 @@ def checkout(name):
     oid = get_oid(name)
     commit = get_commit(oid)
     read_tree(commit.tree)
-    data.update_ref('HEAD', data.RefValue(symbolic=False, value=oid))
     
     # We can either checkout a commit by its OID or ref. However, 
     # by checking out an OID, HEAD point to that OID but does not point 
@@ -135,6 +134,8 @@ def checkout(name):
     else:
         HEAD = data.RefValue(symbolic=False, value=oid)
 
+    data.update_ref ('HEAD', HEAD, deref=False) 
+    
 
 def create_tag(name, oid):
     data.update_ref(f'refs/tags/{name}', data.RefValue(symbolic=False, value=oid))
