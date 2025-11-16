@@ -135,7 +135,7 @@ def show(args):
         
 
 def checkout(args):
-    base.checkout(args.commit)w
+    base.checkout(args.commit)
     
 
 def tag(args):
