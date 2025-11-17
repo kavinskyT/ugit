@@ -25,6 +25,19 @@ def compare_trees(*trees): # A parameter prefixed with a single * is used to col
         yield (path, *oids)
         
 
+# This function takes two trees and output alla changed 
+# paths along with the change type (deleted, created, modified).
+def iter_changed_files(t_from, t_to):
+    for path, o_from, o_to in compare_trees(t_from, t_to):
+        if o_from != o_to:
+            action = ('new file' if not o_from else
+                      'deleted' if not o_to else
+                      'modified')
+            yield path, action
+        
+
+# This function takes two tree, compares them and 
+# return all entries that have different OIDs.
 def diff_trees(t_from, t_to):
     output = b'' # because it will be a byte string 
     for path, o_from, o_to in compare_trees(t_from, t_to):
