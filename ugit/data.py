@@ -65,7 +65,7 @@ def _get_ref_internal(ref, deref):
         
         
 def iter_refs(prefix='', deref=True):
-    refs = ['HEAD']
+    refs = ['HEAD', 'MERGE_HEAD']
     # This is needed to get all the refs in the path format expected by get_ref, 
     # which appends ref to GIT_DIR
     for root, _, filenames in os.walk(os.path.join(GIT_DIR, 'refs')):
@@ -75,7 +75,9 @@ def iter_refs(prefix='', deref=True):
     for refname in refs:
         if not refname.startswith(prefix):
             continue
-        yield refname, get_ref(refname, deref=deref)
+        ref = get_ref(refname, deref=deref)
+        if ref.value: # To check existence of MERGE_HEAD
+            yield refname, ref
         
         
 # In the caller, data is encoded into bytes.    
