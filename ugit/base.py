@@ -212,12 +212,12 @@ def get_branch_name():
     return os.path.relpath(HEAD, 'refs/heads/')
 
 
-Commit = namedtuple('Commit', ['tree', 'parent', 'message'])
+Commit = namedtuple('Commit', ['tree', 'parents', 'message'])
 
 
 # Given an oid it returns the associated Commit tuple
 def get_commit(oid):
-    parent = None
+    parents = []
     
     commit = data.get_object(oid, 'commit').decode()
     lines = iter(commit.splitlines())
@@ -228,12 +228,12 @@ def get_commit(oid):
         if key == 'tree':
             tree = value
         elif key == 'parent':
-            parent = value
+            parents.append(value)
         else: 
             assert False, f'Unknown field {key}'
         
     message = '\n'.join(lines)
-    return Commit(tree=tree, parent=parent, message=message)
+    return Commit(tree=tree, parent=parents, message=message)
 
 
 def iter_commits_and_parents(oids):
@@ -244,15 +244,17 @@ def iter_commits_and_parents(oids):
     # oids contains refs so when we pop a ref we append its parent so the next 
     # iteration we pop the parent and so on until the root.
     while oids:
-        oid = oids.popleft()
+        oid = oids.popleft()   
         if not oid or oid in visited:
             continue
         visited.add(oid)
         yield oid
         
         commit = get_commit(oid)
-        # Return parent next
-        oids.appendleft(commit.parent)
+        # Return first parent next
+        oids.extendleft(commit.parents[:1])
+        # Return other parents later (first we want to run all the way to the root)
+        oids.extend(commit.parents[1:])
 
 
 def get_oid(name):
