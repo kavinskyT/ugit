@@ -8,6 +8,7 @@ import string
 from collections import deque, namedtuple
 
 from . import data
+from . import diff
 
 
 def init():
@@ -58,7 +59,7 @@ def get_tree(oid, base_path=''):
         if type_ == 'blob':
             result[path] = oid
         elif type_ == 'tree':
-            result.update(get_tree(oid, 'f{path}/'))
+            result.update(get_tree(oid, f'{path}/'))
         else:
             assert False, f'Unknown tree entry {type_}'
     return result
@@ -107,6 +108,17 @@ def read_tree(tree_oid):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, 'wb') as f:
             f.write(data.get_object(oid))
+            
+            
+# This function takes two tree and extract a merged version of them into the working 
+# directory. It does so by calling diff.merge_trees() and writing the resulting merged
+# tree to the working directory.
+def read_tree_merged(t_HEAD, t_other):
+    _empty_current_directory()
+    for path, blob in diff.merge_trees(get_tree(t_HEAD), get_tree(t_other)).items():
+        os.makedirs(f'./{os.path.dirname(path)}', exist_ok=True)
+        with open(path, 'wb') as f:
+            f.write(blob)
             
 
 # This function creates an enriched tree. It makes HEAD to point to this commit
@@ -166,9 +178,16 @@ def create_tag(name, oid):
     data.update_ref(f'refs/tags/{name}', data.RefValue(symbolic=False, value=oid))
     
     
+# This function thakes the tree of the HEAD and the tree of the other branch 
+# we want to merge with and calls read_tree_merged()
 def merge(other):
-    # TODO merge HEAD into other
-    pass
+    HEAD = data.get_ref('HEAD').value
+    assert HEAD
+    c_HEAD = get_commit(HEAD)
+    c_other = get_commit(other)
+    
+    read_tree_merged(c_HEAD.tree, c_other.tree)
+    print('Merged in working tree')
 
 
 def create_branch(name, oid):

@@ -224,5 +224,8 @@ def reset(args):
     base.reset(args.commit)
     
     
+# Assuming that both HEAD and some-branch have a file named main.py in 
+# their tree, when merging, we want to create a new main.py that will 
+# contain the content of both HEAD's main.py and some-branch's main.py.    
 def merge(args):
     base.merge(args.commit)
