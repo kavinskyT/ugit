@@ -39,6 +39,12 @@ def get_ref(ref, deref=True):
     return _get_ref_internal(ref, deref)[1]
 
 
+# It removes an existing ref
+def delete_ref(ref, deref=True):
+    ref = _get_ref_internal(ref, deref)[0]
+    os.remove(f'{GIT_DIR}/{ref}')
+
+
 # This function is needed to resolve a ref. If a ref is symbolic, the function 
 # retrieves the last ref in the chain that actually refers to an oid (commit)
 def _get_ref_internal(ref, deref):
