@@ -5,8 +5,39 @@ import hashlib
 import os
 
 from collections import namedtuple
+from contextlib import contextmanager
 
-GIT_DIR = '.ugit'
+# Will be initialized in cli.main()
+GIT_DIR = None
+
+
+# We need to temporarily look inside other repositories (e.g., during fetch/push),
+# which means ugit must be able to switch its GIT_DIR on the fly.
+#
+# The @contextmanager decorator lets us write this as a "with" block:
+#
+#     with change_git_dir('some/repo'):
+#         ... operate on that repo ...
+#
+# This temporarily replaces the global GIT_DIR and *automatically restores*
+# the previous value after the block finishes, even if an error occurs.
+#
+# This mirrors how real Git internally swaps its .git directory when dealing
+# with remotes. It also keeps our code safe and easy to reason about while
+# we learn how repository synchronization works.
+#
+# In short:
+#   - Enter block  → point GIT_DIR to new_repo/.ugit
+#   - Exit block   → restore original GIT_DIR
+#
+# This feature is essential for implementing commands like fetch and push.
+@contextmanager
+def change_git_dir(new_dir):
+    global GIT_DIR
+    old_dir = GIT_DIR
+    GIT_DIR = f'{new_dir}/.ugit'
+    yield
+    GIT_DIR = old_dir
 
 def init():
     os.makedirs(GIT_DIR)
