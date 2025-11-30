@@ -100,6 +100,11 @@ def parse_args():
     fetch_parser.set_defaults(funch=fetch)
     fetch_parser.add_argument('remote')
     
+    push_parser = commands.add_parser('push')
+    push_parser.set_defaults(push)
+    push_parser.add_argument('remote')
+    push_parser.add_argument('branch')
+    
     return parser.parse_args()
 
 
@@ -251,6 +256,14 @@ def merge_base(args):
     print(base.get_merch_base(args.commit1, args.commit2))
     
 
-# It downloads refs and associated objects from a remote repository.
+# It downloads refs and associated objects from a remote repository. This does NOT
+# move HEAD. After 'fetch' one should do 'merge'.
 def fetch(args):
     remote.fetch(args.remote)
+    
+
+# It uploads objects and synchronizes the local refs to the remote refs. 
+# The usecase for this is when you've added some commits and you'd like to update 
+# a remote repository so that it's synchronized with your local version.
+def push(args):
+    remote.push(args.remote, f'refs/heads/{args.branch}')
