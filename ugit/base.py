@@ -340,15 +340,32 @@ def get_oid(name):
     
 
 # It is invoked on a file and it will record the current 
-# state of the file in the index
+# state of the file in the index. It invoked on a folder, 
+# it will apply to all the files inside the folder.
 def add(filenames):
+    
+    def add_file(filename):
+        # Normalize path
+        filename = os.path.relpath(filename)
+        with open(filename, 'rb') as f:
+            oid = data.hash_object(f.read())
+        index[filename] = oid
+        
+    def add_directory(dirname):
+        for root, _, filenames in os.walk(dirname):
+            for filename in filenames:
+                # Normalize path
+                path = os.path.relpath(f'{root}/{filename}')
+                if is_ignored(path) or not os.path.isfile(path):
+                    continue
+                add_file(path)
+    
     with data.get_index() as index:
-        for filename in filenames:
-            # Normalize path
-            filename = os.path.relpath(filename)
-            with open(filename, 'rb') as f:
-                oid = data.hash_object(f.read())
-            index[filename] = oid
+        for name in filenames:
+            if os.path.isfile(name):
+                add_file(name)
+            elif os.path.isdir(name):
+                add_directory(name)
     
     
 def is_ignored(path):

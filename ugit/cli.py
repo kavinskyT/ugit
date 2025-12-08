@@ -273,7 +273,7 @@ def push(args):
     remote.push(args.remote, f'refs/heads/{args.branch}')
     
 
-# It puts the file into the object database and remember its OID in the index. 
+# It puts the file (or files, or files in folder) into the object database and remember its OID in the index. 
 # The index is a dictionary that maps filenames to their last remembered OID. 
 # The index will be saved as a JSON file in the .ugit directory so that we can 
 # persist it between invocations of ugit.
