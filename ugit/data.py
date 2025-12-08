@@ -2,6 +2,7 @@
 # be the code that actually touches files on disk.
 
 import hashlib
+import json
 import os
 import shutil
 
@@ -19,6 +20,9 @@ GIT_DIR = None
 #
 #     with change_git_dir('some/repo'):
 #         ... operate on that repo ...
+#
+# The yield "pauses" the function and splits logic 
+# into setup (before yield) and cleanup (after yield)
 #
 # This temporarily replaces the global GIT_DIR and *automatically restores*
 # the previous value after the block finishes, even if an error occurs.
@@ -110,6 +114,20 @@ def iter_refs(prefix='', deref=True):
         ref = get_ref(refname, deref=deref)
         if ref.value: # To check existence of MERGE_HEAD
             yield refname, ref
+            
+
+# It reads and writes the index
+@contextmanager
+def get_index():
+    index = {}
+    if os.path.isfile(f'{GIT_DIR}/index'):
+        with open(f'{GIT_DIR}/index') as f:
+            index = json.load(f)
+            
+    yield index # Pauses, returns control to caller which will modify the index
+    
+    with open(f'{GIT_DIR}/index', 'w') as f:
+        json.dump(index, f)
         
         
 # In the caller, data is encoded into bytes.    

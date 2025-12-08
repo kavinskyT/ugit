@@ -105,6 +105,10 @@ def parse_args():
     push_parser.add_argument('remote')
     push_parser.add_argument('branch')
     
+    add_parser = commands.add_parser('add')
+    add_parser.set_defaults(func=add)
+    add_parser.add_argument('files', nargs='+')
+    
     return parser.parse_args()
 
 
@@ -267,3 +271,11 @@ def fetch(args):
 # a remote repository so that it's synchronized with your local version.
 def push(args):
     remote.push(args.remote, f'refs/heads/{args.branch}')
+    
+
+# It puts the file into the object database and remember its OID in the index. 
+# The index is a dictionary that maps filenames to their last remembered OID. 
+# The index will be saved as a JSON file in the .ugit directory so that we can 
+# persist it between invocations of ugit.
+def add(args):
+    base.add(args.files)

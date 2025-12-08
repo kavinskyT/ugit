@@ -34,7 +34,9 @@ def push(remote_path, refname):
     local_ref = data.get_ref(refname).value
     assert local_ref
     
-    # Don't allow force push
+    # Don't allow force push (if two people are working on the same branch that 
+    # is pushed to a common remote repository, they might overwrite 
+    # each other's work.)
     assert not remote_ref or base.is_ancestor_of(local_ref, remote_ref)
     
     # Compute which objects the server doesn't have
