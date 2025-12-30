@@ -117,9 +117,36 @@ def _empty_current_directory():
                 # Deletion might fail if the directory contains ignored files,
                 # so it's OK
                 pass
+            
+            
+def read_tree(tree_oid, update_working=False):
+    with data.get_index() as index:
+        index.clear()
+        index.update(get_tree(tree_oid))
+        
+        if update_working:
+            _checkout_index(index)
+            
 
+def read_tree_merged(t_base, t_HEAD, t_other, update_working=False):
+    with data.get_index() as index:
+        index.clear()
+        index.update(diff.merge_trees(
+            get_tree(t_base),
+            get_tree(t_HEAD),
+            get_tree(t_other)
+        ))
+        
 
-# This function rebuild the directory as saved in the corresponding tree.
+def _checkout_index(index):
+    _empty_current_directory()
+    for path, oid in index.items():
+        os.makedirs(os.path.dirname(f'./{path}', exist_ok=True))
+        with open(path, 'wb') as f:
+            f.write(data.get_object(oid, 'blob'))
+        
+
+"""# This function rebuild the directory as saved in the corresponding tree.
 def read_tree(tree_oid):
     _empty_current_directory()
     for path, oid in get_tree(tree_oid, base_path='./').items():
@@ -137,7 +164,7 @@ def read_tree_merged(t_base, t_HEAD, t_other):
             get_tree(t_base), get_tree(t_HEAD), get_tree(t_other)).items():
         os.makedirs(f'./{os.path.dirname(path)}', exist_ok=True)
         with open(path, 'wb') as f:
-            f.write(blob)
+            f.write(blob)"""
             
 
 # This function creates an enriched tree. It makes HEAD to point to this commit
@@ -175,7 +202,7 @@ def commit(message):
 def checkout(name):
     oid = get_oid(name)
     commit = get_commit(oid)
-    read_tree(commit.tree)
+    read_tree(commit.tree, update_working=True)
     
     # We can either checkout a commit by its OID or ref. However, 
     # by checking out an OID, HEAD point to that OID but does not point 
@@ -223,7 +250,7 @@ def merge(other):
     
     # Handle fast-forward merge (when common base is equal to HEAD)
     if merge_base == HEAD:
-        read_tree(c_other.tree)
+        read_tree(c_other.tree, update_working=True)
         data.update_ref('HEAD',
                         data.RefValue(symbolic=False, value=other))
         print('Fast-forward merge, no need to commit')
@@ -235,7 +262,7 @@ def merge(other):
     
     c_base = get_commit(merge_base)
     c_HEAD = get_commit(HEAD)
-    read_tree_merged(c_base.tree, c_HEAD.tree, c_other.tree)
+    read_tree_merged(c_base.tree, c_HEAD.tree, c_other.tree, update_working=True)
     print('Merged in working tree\nPlease commit')
 
 
